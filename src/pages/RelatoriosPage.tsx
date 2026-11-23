@@ -105,6 +105,17 @@ export function RelatoriosPage() {
     [sales],
   );
 
+  const salesByCategory = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const p of products) {
+      const key = p.category || 'Outros';
+      map.set(key, (map.get(key) ?? 0) + Number(p.totalSold));
+    }
+    return Array.from(map.entries())
+      .map(([category, amount]) => ({ category, amount }))
+      .sort((a, b) => b.amount - a.amount);
+  }, [products]);
+
   const stockTotals = useMemo(
     () =>
       stockRows.reduce(
@@ -228,9 +239,9 @@ export function RelatoriosPage() {
           </div>
         </div>
 
-        {/* Linha do meio: Recebimentos por método com barras horizontais + Produtos mais vendidos */}
+        {/* Linha do meio: Recebimentos por método + Vendas por categoria com barras de progresso */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5 lg:col-span-5">
+          <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5 lg:col-span-6">
             <h2 className="mb-4 text-[15px] font-semibold text-[#252824]">
               Recebimentos por método
             </h2>
@@ -273,7 +284,59 @@ export function RelatoriosPage() {
             )}
           </div>
 
-          <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5 lg:col-span-7">
+          <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5 lg:col-span-6">
+            <h2 className="mb-4 text-[15px] font-semibold text-[#252824]">
+              Vendas por categoria
+            </h2>
+            {loading ? (
+              <p className="text-[13px] text-[#73766e]">Carregando...</p>
+            ) : salesByCategory.length === 0 ? (
+              <p className="text-[13px] text-[#73766e]">
+                Nenhuma venda registrada no período.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {salesByCategory.map((cat, idx) => {
+                  const pct =
+                    totalProductsRevenue > 0
+                      ? Math.round((cat.amount / totalProductsRevenue) * 100)
+                      : 0;
+                  const barColors = [
+                    'bg-[#d64b19]',
+                    'bg-[#e47948]',
+                    'bg-[#b58059]',
+                    'bg-[#4f775d]',
+                  ];
+                  const barColor = barColors[idx % barColors.length];
+                  return (
+                    <div key={cat.category}>
+                      <div className="mb-1 flex items-center justify-between text-[13px]">
+                        <span className="font-semibold text-[#252824]">
+                          {cat.category}
+                        </span>
+                        <span className="font-semibold text-[#252824]">
+                          {pct}%
+                        </span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-[#f0f1ec]">
+                        <div
+                          className={`h-full rounded-full ${barColor}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <p className="mt-1 text-[11px] text-[#73766e]">
+                        {formatCurrency(cat.amount)}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Produtos mais vendidos */}
+        <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-[15px] font-semibold text-[#252824]">
                 Produtos mais vendidos
@@ -328,7 +391,6 @@ export function RelatoriosPage() {
               </div>
             )}
           </div>
-        </div>
 
         {/* Linha inferior: Tabela de estoque + Resumo da operação */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">

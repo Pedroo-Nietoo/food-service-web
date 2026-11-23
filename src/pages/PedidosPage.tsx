@@ -1,13 +1,14 @@
 import {
   Check,
   Clock,
+  CopyPlus,
   CreditCard,
   Eye,
   Plus,
   RotateCcw,
   Search,
   Trash2,
-  XCircle,
+  X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Modal } from '../components/Modal';
@@ -260,6 +261,31 @@ export function PedidosPage() {
         text: err instanceof ApiError ? err.message : 'Erro ao cancelar pedido.',
       });
     }
+  }
+
+  function handleRepeatOrder(order: Order) {
+    const items = order.items
+      .map((i) => {
+        const product = productMap[i.productId];
+        return product ? { product, quantity: i.quantity } : null;
+      })
+      .filter((x): x is { product: Product; quantity: number } => x !== null);
+
+    if (items.length === 0) {
+      setToast({
+        type: 'error',
+        text: 'Os produtos deste pedido não estão mais disponíveis.',
+      });
+      return;
+    }
+
+    setCustomerId(order.customerId ?? '');
+    setDraftItems(items);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setToast({
+      type: 'success',
+      text: 'Itens copiados para o novo pedido.',
+    });
   }
 
   async function openDetail(orderId: string) {
@@ -665,10 +691,21 @@ export function PedidosPage() {
                               type="button"
                               onClick={() => openDetail(order.id)}
                               className="rounded-lg border border-[#e7e8e2] p-1.5 text-[#73766e] hover:bg-[#f7f8f4] hover:text-[#252824]"
-                              title="Detalhes"
+                              title="Ver detalhes"
                             >
                               <Eye className="size-4" />
                             </button>
+
+                            {canCreate && (
+                              <button
+                                type="button"
+                                onClick={() => handleRepeatOrder(order)}
+                                className="rounded-lg border border-[#e7e8e2] p-1.5 text-[#73766e] hover:bg-[#f7f8f4] hover:text-[#252824]"
+                                title="Repetir pedido no formulário"
+                              >
+                                <CopyPlus className="size-4" />
+                              </button>
+                            )}
 
                             {order.status === 'OPEN' && canCreate && (
                               <button
@@ -728,10 +765,10 @@ export function PedidosPage() {
                                 <button
                                   type="button"
                                   onClick={() => setCancellingOrder(order)}
-                                  className="rounded-lg p-1.5 text-[#73766e] hover:bg-[#fef2f2] hover:text-[#b91c1c]"
+                                  className="rounded-lg p-1.5 text-[#b91c1c] hover:bg-[#fef2f2]"
                                   title="Cancelar pedido"
                                 >
-                                  <XCircle className="size-4" />
+                                  <X className="size-4" />
                                 </button>
                               )}
                           </div>

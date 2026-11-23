@@ -134,7 +134,14 @@ export function ClientesPage() {
     );
   }
 
-  const withCpf = customers.filter((c) => Boolean(c.cpf)).length;
+  const now = new Date();
+  const newThisMonth = customers.filter((c) => {
+    const created = new Date(c.createdAt);
+    return (
+      created.getMonth() === now.getMonth() &&
+      created.getFullYear() === now.getFullYear()
+    );
+  }).length;
   const withPhone = customers.filter((c) => Boolean(c.phone)).length;
 
   return (
@@ -179,14 +186,14 @@ export function ClientesPage() {
           </div>
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
             <p className="text-[12px] font-medium text-[#73766e]">
-              Com CPF na página
+              Novos neste mês
             </p>
             <div className="mt-2 flex items-baseline gap-2.5">
               <span className="text-[28px] font-bold text-[#277254]">
-                {withCpf}
+                {newThisMonth}
               </span>
               <span className="text-[11px] text-[#73766e]">
-                Identificação fiscal válida
+                Cadastrados no mês atual
               </span>
             </div>
           </div>
