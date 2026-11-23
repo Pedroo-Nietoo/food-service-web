@@ -1,4 +1,4 @@
-import { Download, Pencil, Plus, Search } from 'lucide-react';
+import { Download, Pencil, Plus, Search, ShieldCheck } from 'lucide-react';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Modal } from '../components/Modal';
 import { Toast, type ToastMessage } from '../components/Toast';
@@ -142,11 +142,14 @@ export function ClientesPage() {
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-[24px] font-bold tracking-tight text-[#252824]">
-              Clientes
+            <p className="text-[11px] font-semibold uppercase tracking-[1px] text-[#d64b19]">
+              RELACIONAMENTO
+            </p>
+            <h1 className="mt-1 text-[26px] font-bold tracking-tight text-[#252824]">
+              Gestão de clientes
             </h1>
             <p className="mt-1 text-[13px] text-[#73766e]">
-              Cadastro e consulta por nome, CPF ou telefone normalizados.
+              Conheça quem volta sempre e deixe o atendimento mais próximo.
             </p>
           </div>
           <button
@@ -159,89 +162,135 @@ export function ClientesPage() {
           </button>
         </div>
 
+        {/* Resumo dos clientes */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
             <p className="text-[12px] font-medium text-[#73766e]">
               Clientes cadastrados
             </p>
-            <p className="mt-2 text-[28px] font-bold text-[#252824]">{total}</p>
+            <div className="mt-2 flex items-baseline gap-2.5">
+              <span className="text-[28px] font-bold text-[#252824]">
+                {total}
+              </span>
+              <span className="text-[11px] text-[#73766e]">
+                Uma boa relação começa aqui
+              </span>
+            </div>
           </div>
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
             <p className="text-[12px] font-medium text-[#73766e]">
               Com CPF na página
             </p>
-            <p className="mt-2 text-[28px] font-bold text-[#252824]">{withCpf}</p>
+            <div className="mt-2 flex items-baseline gap-2.5">
+              <span className="text-[28px] font-bold text-[#277254]">
+                {withCpf}
+              </span>
+              <span className="text-[11px] text-[#73766e]">
+                Identificação fiscal válida
+              </span>
+            </div>
           </div>
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
             <p className="text-[12px] font-medium text-[#73766e]">
               Com telefone na página
             </p>
-            <p className="mt-2 text-[28px] font-bold text-[#252824]">{withPhone}</p>
+            <div className="mt-2 flex items-baseline gap-2.5">
+              <span className="text-[28px] font-bold text-[#252824]">
+                {withPhone}
+              </span>
+              <span className="text-[11px] text-[#73766e]">
+                Prontos para contato
+              </span>
+            </div>
           </div>
         </div>
 
+        {/* Novo cliente */}
         <form
           onSubmit={handleCreate}
           noValidate
           className="rounded-[12px] border border-[#e7e8e2] bg-white p-5"
         >
-          <h2 className="mb-4 text-[15px] font-semibold text-[#252824]">
-            Novo cliente
-          </h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-[15px] font-semibold text-[#252824]">
+              Novo cliente
+            </h2>
+            <span className="text-[11px] text-[#73766e]">
+              * Campos obrigatórios
+            </span>
+          </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div>
-              <label className="mb-1 block text-[12px] font-medium text-[#73766e]">
-                Nome completo
+              <label className="mb-1 block text-[12px] font-medium text-[#252824]">
+                Nome completo *
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="ex.: Maria Silva"
-                className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-[#f7f8f4] px-3 text-[13px] outline-none focus:border-[#d64b19] focus:bg-white"
+                placeholder="Ex.: Ana Lima"
+                className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[12px] font-medium text-[#73766e]">
-                CPF (opcional)
+              <label className="mb-1 block text-[12px] font-medium text-[#252824]">
+                CPF
               </label>
               <input
                 type="text"
                 value={cpf}
                 onChange={(e) => setCpf(e.target.value)}
                 placeholder="000.000.000-00"
-                className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-[#f7f8f4] px-3 text-[13px] outline-none focus:border-[#d64b19] focus:bg-white"
+                className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[12px] font-medium text-[#73766e]">
-                Telefone com DDD (opcional)
+              <label className="mb-1 block text-[12px] font-medium text-[#252824]">
+                Telefone
               </label>
               <input
                 type="text"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="(11) 99999-8888"
-                className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-[#f7f8f4] px-3 text-[13px] outline-none focus:border-[#d64b19] focus:bg-white"
+                placeholder="(00) 00000-0000"
+                className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
               />
             </div>
           </div>
-          <div className="mt-4 flex justify-end">
-            <button
-              type="submit"
-              disabled={submitting}
-              className="inline-flex items-center gap-2 rounded-[8px] bg-[#d64b19] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#be4014] disabled:opacity-60"
-            >
-              <Plus className="size-4" />
-              <span>{submitting ? 'Salvando...' : 'Cadastrar cliente'}</span>
-            </button>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-[#73766e]">
+              <ShieldCheck className="size-4 text-[#277254]" />
+              Dados pessoais protegidos e usados apenas no atendimento.
+            </span>
+            <div className="flex gap-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setName('');
+                  setCpf('');
+                  setPhone('');
+                }}
+                className="rounded-[8px] border border-[#e7e8e2] px-4 py-2 text-[13px] font-medium text-[#252824] hover:bg-[#f7f8f4]"
+              >
+                Limpar
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="inline-flex items-center gap-2 rounded-[8px] bg-[#d64b19] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#be4014] disabled:opacity-60"
+              >
+                <Plus className="size-4" />
+                <span>{submitting ? 'Salvando...' : 'Cadastrar cliente'}</span>
+              </button>
+            </div>
           </div>
         </form>
 
+        {/* Tabela */}
         <div className="rounded-[12px] border border-[#e7e8e2] bg-white">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e7e8e2] p-5">
             <h2 className="text-[15px] font-semibold text-[#252824]">
-              Base de clientes
+              Sua base de clientes
             </h2>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#73766e]" />
@@ -252,16 +301,17 @@ export function ClientesPage() {
                   setPage(1);
                   setSearch(e.target.value);
                 }}
-                placeholder="Nome, CPF ou telefone..."
-                className="h-[38px] rounded-[8px] border border-[#e7e8e2] bg-[#f7f8f4] pl-9 pr-3 text-[13px] outline-none focus:border-[#d64b19] focus:bg-white"
+                placeholder="Buscar por nome, CPF ou telefone..."
+                className="h-[38px] rounded-[8px] border border-[#e7e8e2] bg-white pl-9 pr-3 text-[13px] outline-none focus:border-[#d64b19]"
               />
             </div>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-[13px]">
-              <thead className="border-b border-[#e7e8e2] bg-[#f7f8f4] text-[11px] font-semibold uppercase tracking-wider text-[#73766e]">
+              <thead className="border-b border-[#e7e8e2] bg-[#f7f8f4] text-[11px] font-semibold text-[#73766e]">
                 <tr>
+                  <th className="px-5 py-3">ID</th>
                   <th className="px-5 py-3">Nome</th>
                   <th className="px-5 py-3">CPF</th>
                   <th className="px-5 py-3">Telefone</th>
@@ -272,20 +322,23 @@ export function ClientesPage() {
               <tbody className="divide-y divide-[#e7e8e2]">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="px-5 py-8 text-center text-[#73766e]">
+                    <td colSpan={6} className="px-5 py-8 text-center text-[#73766e]">
                       Carregando clientes...
                     </td>
                   </tr>
                 ) : customers.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-5 py-8 text-center text-[#73766e]">
+                    <td colSpan={6} className="px-5 py-8 text-center text-[#73766e]">
                       Nenhum cliente encontrado.
                     </td>
                   </tr>
                 ) : (
                   customers.map((c) => (
                     <tr key={c.id} className="hover:bg-[#f7f8f4]/60">
-                      <td className="px-5 py-3.5 font-medium text-[#252824]">
+                      <td className="px-5 py-3.5 font-mono text-[12px] text-[#73766e]">
+                        #{c.id.slice(0, 6)}
+                      </td>
+                      <td className="px-5 py-3.5 font-semibold text-[#252824]">
                         {c.name}
                       </td>
                       <td className="px-5 py-3.5 text-[#73766e]">
@@ -301,10 +354,10 @@ export function ClientesPage() {
                         <button
                           type="button"
                           onClick={() => openEdit(c)}
-                          className="rounded-lg p-1.5 text-[#73766e] hover:bg-[#f7f8f4] hover:text-[#252824]"
-                          title="Editar"
+                          className="inline-flex items-center gap-1 text-[12px] font-medium text-[#252824] hover:text-[#d64b19]"
                         >
-                          <Pencil className="size-4" />
+                          <Pencil className="size-3.5" />
+                          <span>Editar</span>
                         </button>
                       </td>
                     </tr>

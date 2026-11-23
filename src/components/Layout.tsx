@@ -75,8 +75,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
   const sidebarContent = (
     <div className="flex h-full flex-col justify-between px-5 pb-6 pt-8">
-      <div className="flex flex-col gap-7">
-        {/* Marca */}
+      <div className="flex flex-col gap-8">
         <div className="px-1">
           <p className="text-[36px] font-bold leading-none tracking-tight text-[#d64b19]">
             brasa.
@@ -86,7 +85,6 @@ export function Layout({ children }: { children: ReactNode }) {
           </p>
         </div>
 
-        {/* Menu principal */}
         <nav className="flex flex-col gap-1.5">
           <p className="mb-1 px-2 text-[10px] font-semibold tracking-[1px] text-[#73766e]">
             PRINCIPAL
@@ -114,7 +112,6 @@ export function Layout({ children }: { children: ReactNode }) {
         </nav>
       </div>
 
-      {/* Rodapé da navegação */}
       <div className="flex flex-col gap-1 border-t border-[#e7e8e2] pt-4">
         <button
           type="button"
@@ -132,18 +129,19 @@ export function Layout({ children }: { children: ReactNode }) {
           <LogOut className="size-5 shrink-0" />
           <span>Sair da conta</span>
         </button>
+        <p className="mt-3 px-3 text-[10px] text-[#a3a69e]">
+          brasa. © 2026 • v1.0
+        </p>
       </div>
     </div>
   );
 
   return (
     <div className="flex min-h-screen overflow-x-hidden bg-[#f7f8f4]">
-      {/* Desktop Sidebar */}
       <aside className="hidden w-[232px] shrink-0 border-r border-[#e7e8e2] bg-white lg:block">
         {sidebarContent}
       </aside>
 
-      {/* Mobile Drawer */}
       {mobileOpen && (
         <div className="fixed inset-0 z-40 flex lg:hidden">
           <div
@@ -164,9 +162,7 @@ export function Layout({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      {/* Workspace */}
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Topbar */}
         <header className="flex h-[80px] shrink-0 items-center justify-between border-b border-[#e7e8e2] bg-white px-4 sm:px-8">
           <div className="flex items-center gap-3">
             <button
@@ -194,7 +190,6 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        {/* Page Content */}
         <main className="flex-1 p-4 sm:p-8">{children}</main>
       </div>
 

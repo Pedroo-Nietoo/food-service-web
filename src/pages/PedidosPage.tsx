@@ -1,9 +1,11 @@
 import {
   Check,
+  Clock,
   CreditCard,
   Eye,
   Plus,
   RotateCcw,
+  Search,
   Trash2,
   XCircle,
 } from 'lucide-react';
@@ -42,7 +44,12 @@ function computeRemainingAmount(order: Order): number {
   const total = Number(order.total);
   if (!Number.isFinite(total)) return 0;
   const paid = (order.payments ?? [])
-    .filter((p) => p.status === 'PAID' || p.status === 'PENDING' || p.status === 'REFUND_PENDING')
+    .filter(
+      (p) =>
+        p.status === 'PAID' ||
+        p.status === 'PENDING' ||
+        p.status === 'REFUND_PENDING',
+    )
     .reduce((sum, p) => sum + Number(p.amount), 0);
   const diff = total - paid;
   return diff > 0 ? Number(diff.toFixed(2)) : 0;
@@ -59,6 +66,7 @@ export function PedidosPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | ''>('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
@@ -119,6 +127,24 @@ export function PedidosPage() {
     return map;
   }, [products]);
 
+  const customerMap = useMemo(() => {
+    const map: Record<string, Customer> = {};
+    for (const c of customers) map[c.id] = c;
+    return map;
+  }, [customers]);
+
+  const filteredOrders = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return orders;
+    return orders.filter((o) => {
+      const idMatch = o.id.toLowerCase().includes(q);
+      const custName = o.customerId
+        ? (customerMap[o.customerId]?.name ?? '').toLowerCase()
+        : '';
+      return idMatch || custName.includes(q);
+    });
+  }, [orders, searchQuery, customerMap]);
+
   const draftTotal = useMemo(
     () =>
       draftItems.reduce(
@@ -132,7 +158,7 @@ export function PedidosPage() {
     const preparing = orders.filter((o) => o.status === 'PREPARING').length;
     const ready = orders.filter((o) => o.status === 'READY').length;
     const completedTotal = orders
-      .filter((o) => o.status === 'COMPLETED')
+      .filter((o) => o.status !== 'CANCELLED')
       .reduce((sum, o) => sum + Number(o.total), 0);
     return {
       total: orders.length,
@@ -165,8 +191,7 @@ export function PedidosPage() {
     setItemQty('1');
   }
 
-  async function handleCreateOrder(e: FormEvent) {
-    e.preventDefault();
+  async function handleCreateOrder() {
     if (draftItems.length === 0) {
       setToast({ type: 'error', text: 'Adicione pelo menos um item ao pedido.' });
       return;
@@ -338,11 +363,14 @@ export function PedidosPage() {
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-[24px] font-bold tracking-tight text-[#252824]">
-              Pedidos
+            <p className="text-[11px] font-semibold uppercase tracking-[1px] text-[#d64b19]">
+              OPERAÇÃO
+            </p>
+            <h1 className="mt-1 text-[26px] font-bold tracking-tight text-[#252824]">
+              Gerenciamento de pedidos
             </h1>
             <p className="mt-1 text-[13px] text-[#73766e]">
-              Acompanhe o fluxo da cozinha, confirmação de estoque e pagamentos.
+              Do balcão à entrega, acompanhe cada pedido em tempo real.
             </p>
           </div>
           <span className="rounded-[10px] border border-[#e7e8e2] bg-white px-4 py-2 text-[13px] font-medium text-[#252824]">
@@ -350,180 +378,237 @@ export function PedidosPage() {
           </span>
         </div>
 
+        {/* Resumo dos pedidos */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
             <p className="text-[12px] font-medium text-[#73766e]">
               Pedidos listados
             </p>
-            <p className="mt-2 text-[28px] font-bold text-[#252824]">
-              {summary.total}
-            </p>
+            <div className="mt-2 flex items-baseline gap-2.5">
+              <span className="text-[28px] font-bold text-[#252824]">
+                {summary.total}
+              </span>
+              <span className="text-[11px] text-[#73766e]">Na fila atual</span>
+            </div>
           </div>
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
             <p className="text-[12px] font-medium text-[#73766e]">Em preparo</p>
-            <p className="mt-2 text-[28px] font-bold text-[#b45309]">
-              {summary.preparing}
-            </p>
+            <div className="mt-2 flex items-baseline gap-2.5">
+              <span className="text-[28px] font-bold text-[#d64b19]">
+                {summary.preparing}
+              </span>
+              <span className="text-[11px] text-[#73766e]">
+                A cozinha está a todo vapor
+              </span>
+            </div>
           </div>
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
             <p className="text-[12px] font-medium text-[#73766e]">
               Prontos para entrega
             </p>
-            <p className="mt-2 text-[28px] font-bold text-[#277254]">
-              {summary.ready}
-            </p>
+            <div className="mt-2 flex items-baseline gap-2.5">
+              <span className="text-[28px] font-bold text-[#277254]">
+                {summary.ready}
+              </span>
+              <span className="text-[11px] text-[#73766e]">
+                Aguardando retirada
+              </span>
+            </div>
           </div>
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
             <p className="text-[12px] font-medium text-[#73766e]">
-              Vendas concluídas
+              Volume de pedidos
             </p>
-            <p className="mt-2 text-[28px] font-bold text-[#d64b19]">
-              {formatCurrency(summary.completedTotal)}
-            </p>
+            <div className="mt-2 flex items-baseline gap-2.5">
+              <span className="text-[26px] font-bold text-[#252824]">
+                {formatCurrency(summary.completedTotal)}
+              </span>
+              <span className="text-[11px] text-[#73766e]">
+                Não cancelados
+              </span>
+            </div>
           </div>
         </div>
 
+        {/* Registro de pedido — Layout 2 colunas (Formulário + Resumo creme) */}
         {canCreate && (
-          <form
-            onSubmit={handleCreateOrder}
-            noValidate
-            className="rounded-[12px] border border-[#e7e8e2] bg-white p-5"
-          >
-            <h2 className="mb-4 text-[15px] font-semibold text-[#252824]">
-              Registro de pedido
-            </h2>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-              <div>
-                <label className="mb-1 block text-[12px] font-medium text-[#73766e]">
-                  Cliente (opcional)
-                </label>
-                <select
-                  value={customerId}
-                  onChange={(e) => setCustomerId(e.target.value)}
-                  className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-[#f7f8f4] px-3 text-[13px] outline-none focus:border-[#d64b19]"
-                >
-                  <option value="">Balcão / Não identificado</option>
-                  {customers.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="mb-1 block text-[12px] font-medium text-[#73766e]">
-                  Produto
-                </label>
-                <select
-                  value={selectedProductId}
-                  onChange={(e) => setSelectedProductId(e.target.value)}
-                  className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-[#f7f8f4] px-3 text-[13px] outline-none focus:border-[#d64b19]"
-                >
-                  {products.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} — {formatCurrency(p.price)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="mb-1 block text-[12px] font-medium text-[#73766e]">
-                  Quantidade
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    min={1}
-                    value={itemQty}
-                    onChange={(e) => setItemQty(e.target.value)}
-                    className="h-[42px] w-20 rounded-[8px] border border-[#e7e8e2] bg-[#f7f8f4] px-3 text-[13px] outline-none focus:border-[#d64b19]"
-                  />
-                  <button
-                    type="button"
-                    onClick={addDraftItem}
-                    className="flex-1 rounded-[8px] border border-[#d64b19] px-3 text-[13px] font-semibold text-[#d64b19] hover:bg-[#fff0e7]"
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+            <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5 lg:col-span-2">
+              <h2 className="mb-4 text-[15px] font-semibold text-[#252824]">
+                Novo pedido
+              </h2>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div>
+                  <label className="mb-1 block text-[12px] font-medium text-[#252824]">
+                    Cliente (opcional)
+                  </label>
+                  <select
+                    value={customerId}
+                    onChange={(e) => setCustomerId(e.target.value)}
+                    className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
                   >
-                    Adicionar
-                  </button>
+                    <option value="">Balcão / Não identificado</option>
+                    {customers.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
+
+                <div>
+                  <label className="mb-1 block text-[12px] font-medium text-[#252824]">
+                    Produto *
+                  </label>
+                  <select
+                    value={selectedProductId}
+                    onChange={(e) => setSelectedProductId(e.target.value)}
+                    className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
+                  >
+                    {products.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} · {formatCurrency(p.price)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-[12px] font-medium text-[#252824]">
+                    Quantidade *
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      min={1}
+                      value={itemQty}
+                      onChange={(e) => setItemQty(e.target.value)}
+                      className="h-[42px] w-20 rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
+                    />
+                    <button
+                      type="button"
+                      onClick={addDraftItem}
+                      className="flex-1 rounded-[8px] border border-[#d64b19] px-3 text-[13px] font-semibold text-[#d64b19] hover:bg-[#fff0e7]"
+                    >
+                      Adicionar
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 flex items-center gap-2 rounded-[8px] bg-[#f7f8f4] px-3.5 py-2.5 text-[12px] text-[#73766e]">
+                <Clock className="size-4 shrink-0 text-[#d64b19]" />
+                <span>
+                  O pedido é criado com status &ldquo;Aberto&rdquo; e debita o estoque ao confirmar.
+                </span>
               </div>
             </div>
 
-            {draftItems.length > 0 && (
-              <div className="mt-4 rounded-[10px] border border-[#e7e8e2] bg-[#f7f8f4] p-4">
-                <div className="space-y-2">
-                  {draftItems.map((item) => (
-                    <div
-                      key={item.product.id}
-                      className="flex items-center justify-between text-[13px]"
-                    >
-                      <span>
-                        <strong>{item.quantity}x</strong> {item.product.name}
-                      </span>
-                      <div className="flex items-center gap-3">
-                        <span className="font-medium">
-                          {formatCurrency(
-                            Number(item.product.price) * item.quantity,
-                          )}
+            {/* Card Resumo creme */}
+            <div className="flex flex-col justify-between rounded-[12px] border border-[#f5ddd0] bg-[#fff8f3] p-5">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[1px] text-[#d64b19]">
+                  RESUMO · NOVO PEDIDO
+                </p>
+                {draftItems.length === 0 ? (
+                  <p className="mt-3 text-[12px] text-[#73766e]">
+                    Nenhum item adicionado ainda.
+                  </p>
+                ) : (
+                  <div className="mt-3 max-h-32 space-y-2 overflow-y-auto pr-1">
+                    {draftItems.map((item) => (
+                      <div
+                        key={item.product.id}
+                        className="flex items-center justify-between text-[13px]"
+                      >
+                        <span className="truncate text-[#252824]">
+                          {item.quantity} × {item.product.name}
                         </span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setDraftItems((prev) =>
-                              prev.filter((i) => i.product.id !== item.product.id),
-                            )
-                          }
-                          className="text-[#73766e] hover:text-[#b91c1c]"
-                        >
-                          <Trash2 className="size-4" />
-                        </button>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="font-medium">
+                            {formatCurrency(
+                              Number(item.product.price) * item.quantity,
+                            )}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDraftItems((prev) =>
+                                prev.filter((i) => i.product.id !== item.product.id),
+                              )
+                            }
+                            className="text-[#73766e] hover:text-[#b91c1c]"
+                            aria-label="Remover item"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-3 flex items-center justify-between border-t border-[#e7e8e2] pt-3">
-                  <span className="text-[14px] font-bold text-[#252824]">
-                    Total: {formatCurrency(draftTotal)}
-                  </span>
-                  <button
-                    type="submit"
-                    disabled={creating}
-                    className="inline-flex items-center gap-2 rounded-[8px] bg-[#d64b19] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#be4014] disabled:opacity-60"
-                  >
-                    <Plus className="size-4" />
-                    <span>{creating ? 'Registrando...' : 'Registrar pedido'}</span>
-                  </button>
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </form>
+
+              <div className="mt-4 border-t border-[#f5ddd0] pt-3">
+                <div className="mb-3 flex items-baseline justify-between">
+                  <span className="text-[13px] font-medium text-[#252824]">
+                    Total
+                  </span>
+                  <span className="text-[22px] font-bold text-[#252824]">
+                    {formatCurrency(draftTotal)}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCreateOrder}
+                  disabled={creating || draftItems.length === 0}
+                  className="inline-flex h-[42px] w-full items-center justify-center gap-2 rounded-[8px] bg-[#d64b19] text-[13px] font-semibold text-white transition hover:bg-[#be4014] disabled:opacity-50"
+                >
+                  <Plus className="size-4" />
+                  <span>{creating ? 'Criando...' : 'Criar pedido'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
+        {/* Pedidos recentes */}
         <div className="rounded-[12px] border border-[#e7e8e2] bg-white">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e7e8e2] p-5">
             <h2 className="text-[15px] font-semibold text-[#252824]">
               Pedidos recentes
             </h2>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as OrderStatus | '')}
-              className="h-[38px] rounded-[8px] border border-[#e7e8e2] bg-[#f7f8f4] px-3 text-[13px] outline-none focus:border-[#d64b19]"
-            >
-              {STATUS_OPTIONS.map((st) => (
-                <option key={st || 'ALL'} value={st}>
-                  {st ? ORDER_STATUS_META[st].label : 'Todos os status'}
-                </option>
-              ))}
-            </select>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#73766e]" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Buscar pedido ou cliente..."
+                  className="h-[38px] rounded-[8px] border border-[#e7e8e2] bg-white pl-9 pr-3 text-[13px] outline-none focus:border-[#d64b19]"
+                />
+              </div>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as OrderStatus | '')}
+                className="h-[38px] rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
+              >
+                {STATUS_OPTIONS.map((st) => (
+                  <option key={st || 'ALL'} value={st}>
+                    {st ? ORDER_STATUS_META[st].label : 'Todos os status'}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-[13px]">
-              <thead className="border-b border-[#e7e8e2] bg-[#f7f8f4] text-[11px] font-semibold uppercase tracking-wider text-[#73766e]">
+              <thead className="border-b border-[#e7e8e2] bg-[#f7f8f4] text-[11px] font-semibold text-[#73766e]">
                 <tr>
                   <th className="px-5 py-3">Pedido</th>
+                  <th className="px-5 py-3">Cliente</th>
                   <th className="px-5 py-3">Itens</th>
                   <th className="px-5 py-3">Total</th>
                   <th className="px-5 py-3">Status</th>
@@ -534,33 +619,39 @@ export function PedidosPage() {
               <tbody className="divide-y divide-[#e7e8e2]">
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="px-5 py-8 text-center text-[#73766e]">
+                    <td colSpan={7} className="px-5 py-8 text-center text-[#73766e]">
                       Carregando pedidos...
                     </td>
                   </tr>
-                ) : orders.length === 0 ? (
+                ) : filteredOrders.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-5 py-8 text-center text-[#73766e]">
+                    <td colSpan={7} className="px-5 py-8 text-center text-[#73766e]">
                       Nenhum pedido encontrado.
                     </td>
                   </tr>
                 ) : (
-                  orders.map((order) => {
+                  filteredOrders.map((order) => {
                     const meta = ORDER_STATUS_META[order.status];
+                    const custName = order.customerId
+                      ? (customerMap[order.customerId]?.name ?? 'Cliente')
+                      : 'Balcão';
                     return (
                       <tr key={order.id} className="hover:bg-[#f7f8f4]/60">
-                        <td className="px-5 py-3.5 font-mono text-[12px] text-[#252824]">
-                          #{order.id.slice(0, 8)}
+                        <td className="px-5 py-3.5 font-mono text-[12px] font-semibold text-[#d64b19]">
+                          #{order.id.slice(0, 6)}
+                        </td>
+                        <td className="px-5 py-3.5 font-medium text-[#252824]">
+                          {custName}
                         </td>
                         <td className="px-5 py-3.5 text-[#73766e]">
-                          {order.items.reduce((s, i) => s + i.quantity, 0)} item(ns)
+                          {order.items.reduce((s, i) => s + i.quantity, 0)} un.
                         </td>
                         <td className="px-5 py-3.5 font-semibold text-[#252824]">
                           {formatCurrency(order.total)}
                         </td>
                         <td className="px-5 py-3.5">
                           <span
-                            className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${meta.bg} ${meta.text}`}
+                            className={`inline-flex rounded-[6px] px-2.5 py-0.5 text-[11px] font-semibold ${meta.bg} ${meta.text}`}
                           >
                             {meta.label}
                           </span>

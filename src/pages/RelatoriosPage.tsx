@@ -1,5 +1,5 @@
 import { Calendar, Download } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Toast, type ToastMessage } from '../components/Toast';
 import { ApiError, apiRequest, exportCsv } from '../lib/api';
 import { formatCurrency, PAYMENT_METHOD_LABELS } from '../lib/format';
@@ -91,18 +91,46 @@ export function RelatoriosPage() {
     );
   }
 
-  const lowStockCount = stockRows.filter((r) => r.lowStock).length;
+  const totalProductsRevenue = useMemo(
+    () => products.reduce((sum, p) => sum + Number(p.totalSold), 0),
+    [products],
+  );
+
+  const totalReceipts = useMemo(
+    () =>
+      (sales?.receiptsByMethod ?? []).reduce(
+        (sum, r) => sum + Number(r.amount),
+        0,
+      ),
+    [sales],
+  );
+
+  const stockTotals = useMemo(
+    () =>
+      stockRows.reduce(
+        (acc, r) => ({
+          entries: acc.entries + r.entries,
+          exits: acc.exits + r.exits + r.losses,
+          net: acc.net + r.netMovement,
+        }),
+        { entries: 0, exits: 0, net: 0 },
+      ),
+    [stockRows],
+  );
 
   return (
     <>
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-[24px] font-bold tracking-tight text-[#252824]">
+            <p className="text-[11px] font-semibold uppercase tracking-[1px] text-[#d64b19]">
+              INTELIGÊNCIA DO NEGÓCIO
+            </p>
+            <h1 className="mt-1 text-[26px] font-bold tracking-tight text-[#252824]">
               Relatórios
             </h1>
             <p className="mt-1 text-[13px] text-[#73766e]">
-              Consolidado de vendas, recebimentos por método e movimentações de estoque.
+              Transforme os números da sua lanchonete em boas decisões.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -146,7 +174,7 @@ export function RelatoriosPage() {
             <button
               type="button"
               onClick={handleExport}
-              className="inline-flex items-center gap-2 rounded-[10px] border border-[#e7e8e2] bg-white px-4 py-2 text-[13px] font-medium text-[#252824] hover:bg-[#f7f8f4]"
+              className="inline-flex items-center gap-2 rounded-[10px] bg-[#d64b19] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#be4014]"
             >
               <Download className="size-4" />
               <span>Exportar relatório</span>
@@ -154,13 +182,17 @@ export function RelatoriosPage() {
           </div>
         </div>
 
+        {/* 4 KPI cards — primeiro em destaque laranja #D64B19 */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
-            <p className="text-[12px] font-medium text-[#73766e]">
+          <div className="rounded-[12px] bg-[#d64b19] p-5 text-white">
+            <p className="text-[12px] font-medium text-white/85">
               Vendas no período
             </p>
-            <p className="mt-2 text-[28px] font-bold text-[#d64b19]">
+            <p className="mt-2 text-[28px] font-bold">
               {formatCurrency(sales?.orders.total ?? '0.00')}
+            </p>
+            <p className="mt-1 text-[11px] text-white/80">
+              Pedidos concluídos no intervalo
             </p>
           </div>
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
@@ -170,25 +202,35 @@ export function RelatoriosPage() {
             <p className="mt-2 text-[28px] font-bold text-[#252824]">
               {sales?.orders.count ?? 0}
             </p>
+            <p className="mt-1 text-[11px] text-[#277254]">
+              Faturados no período
+            </p>
           </div>
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
             <p className="text-[12px] font-medium text-[#73766e]">Ticket médio</p>
             <p className="mt-2 text-[28px] font-bold text-[#252824]">
               {formatCurrency(sales?.orders.averageTicket ?? '0.00')}
             </p>
+            <p className="mt-1 text-[11px] text-[#73766e]">
+              Por pedido concluído
+            </p>
           </div>
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
             <p className="text-[12px] font-medium text-[#73766e]">
-              Itens com estoque baixo
+              Movimentações
             </p>
-            <p className="mt-2 text-[28px] font-bold text-[#b45309]">
-              {lowStockCount}
+            <p className="mt-2 text-[28px] font-bold text-[#252824]">
+              {stockTotals.entries + stockTotals.exits}
+            </p>
+            <p className="mt-1 text-[11px] text-[#73766e]">
+              Entradas e saídas de estoque
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-          <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
+        {/* Linha do meio: Recebimentos por método com barras horizontais + Produtos mais vendidos */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5 lg:col-span-5">
             <h2 className="mb-4 text-[15px] font-semibold text-[#252824]">
               Recebimentos por método
             </h2>
@@ -199,33 +241,47 @@ export function RelatoriosPage() {
                 Nenhum recebimento no período.
               </p>
             ) : (
-              <div className="divide-y divide-[#e7e8e2] text-[13px]">
-                {sales.receiptsByMethod.map((r) => (
-                  <div
-                    key={r.method}
-                    className="flex items-center justify-between py-3"
-                  >
-                    <div>
-                      <p className="font-medium text-[#252824]">
-                        {PAYMENT_METHOD_LABELS[r.method] ?? r.method}
-                      </p>
-                      <p className="text-[11px] text-[#73766e]">
-                        {r.count} pagamento(s)
+              <div className="space-y-4">
+                {sales.receiptsByMethod.map((r) => {
+                  const pct =
+                    totalReceipts > 0
+                      ? Math.round((Number(r.amount) / totalReceipts) * 100)
+                      : 0;
+                  return (
+                    <div key={r.method}>
+                      <div className="mb-1 flex items-center justify-between text-[13px]">
+                        <span className="font-semibold text-[#252824]">
+                          {PAYMENT_METHOD_LABELS[r.method] ?? r.method}
+                        </span>
+                        <span className="font-semibold text-[#252824]">
+                          {pct}%
+                        </span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-[#f0f1ec]">
+                        <div
+                          className="h-full rounded-full bg-[#d64b19]"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <p className="mt-1 text-[11px] text-[#73766e]">
+                        {formatCurrency(r.amount)} · {r.count} pagamento(s)
                       </p>
                     </div>
-                    <span className="font-semibold text-[#277254]">
-                      {formatCurrency(r.amount)}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
 
-          <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
-            <h2 className="mb-4 text-[15px] font-semibold text-[#252824]">
-              Produtos vendidos no período
-            </h2>
+          <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5 lg:col-span-7">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-[15px] font-semibold text-[#252824]">
+                Produtos mais vendidos
+              </h2>
+              <span className="text-[11px] text-[#73766e]">
+                Top do período
+              </span>
+            </div>
             {loading ? (
               <p className="text-[13px] text-[#73766e]">Carregando...</p>
             ) : products.length === 0 ? (
@@ -233,71 +289,116 @@ export function RelatoriosPage() {
                 Nenhuma venda registrada no período.
               </p>
             ) : (
-              <div className="divide-y divide-[#e7e8e2] text-[13px]">
-                {products.map((p) => (
-                  <div
-                    key={p.productId}
-                    className="flex items-center justify-between py-3"
-                  >
-                    <div>
-                      <p className="font-medium text-[#252824]">{p.name}</p>
-                      <p className="text-[11px] text-[#73766e]">
-                        {p.category} · {p.quantitySold} un.
-                      </p>
-                    </div>
-                    <span className="font-semibold text-[#252824]">
-                      {formatCurrency(p.totalSold)}
-                    </span>
-                  </div>
-                ))}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-[13px]">
+                  <thead className="border-b border-[#e7e8e2] text-[11px] font-semibold text-[#73766e]">
+                    <tr>
+                      <th className="pb-2.5">Produto</th>
+                      <th className="pb-2.5">Qtd.</th>
+                      <th className="pb-2.5">Receita</th>
+                      <th className="pb-2.5 text-right">Participação</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#e7e8e2]">
+                    {products.map((p) => {
+                      const share =
+                        totalProductsRevenue > 0
+                          ? (
+                              (Number(p.totalSold) / totalProductsRevenue) *
+                              100
+                            ).toFixed(1)
+                          : '0.0';
+                      return (
+                        <tr key={p.productId}>
+                          <td className="py-3 font-semibold text-[#252824]">
+                            {p.name}
+                          </td>
+                          <td className="py-3 text-[#73766e]">{p.quantitySold}</td>
+                          <td className="py-3 font-semibold text-[#252824]">
+                            {formatCurrency(p.totalSold)}
+                          </td>
+                          <td className="py-3 text-right text-[#73766e]">
+                            {share}%
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
         </div>
 
-        <div className="rounded-[12px] border border-[#e7e8e2] bg-white">
-          <div className="border-b border-[#e7e8e2] p-5">
-            <h2 className="text-[15px] font-semibold text-[#252824]">
-              Movimentações de estoque no período
-            </h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-[13px]">
-              <thead className="border-b border-[#e7e8e2] bg-[#f7f8f4] text-[11px] font-semibold uppercase tracking-wider text-[#73766e]">
-                <tr>
-                  <th className="px-5 py-3">Produto</th>
-                  <th className="px-5 py-3">Saldo atual</th>
-                  <th className="px-5 py-3">Entradas</th>
-                  <th className="px-5 py-3">Saídas</th>
-                  <th className="px-5 py-3">Perdas</th>
-                  <th className="px-5 py-3">Saldo líquido</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#e7e8e2]">
-                {stockRows.length === 0 ? (
+        {/* Linha inferior: Tabela de estoque + Resumo da operação */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          <div className="rounded-[12px] border border-[#e7e8e2] bg-white lg:col-span-8">
+            <div className="border-b border-[#e7e8e2] p-5">
+              <h2 className="text-[15px] font-semibold text-[#252824]">
+                Movimentações de estoque no período
+              </h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-[13px]">
+                <thead className="border-b border-[#e7e8e2] bg-[#f7f8f4] text-[11px] font-semibold text-[#73766e]">
                   <tr>
-                    <td colSpan={6} className="px-5 py-8 text-center text-[#73766e]">
-                      Sem dados de estoque.
-                    </td>
+                    <th className="px-5 py-3">Produto</th>
+                    <th className="px-5 py-3">Saldo atual</th>
+                    <th className="px-5 py-3">Entradas</th>
+                    <th className="px-5 py-3">Saídas</th>
+                    <th className="px-5 py-3">Perdas</th>
+                    <th className="px-5 py-3">Saldo líquido</th>
                   </tr>
-                ) : (
-                  stockRows.map((r) => (
-                    <tr key={r.productId} className="hover:bg-[#f7f8f4]/60">
-                      <td className="px-5 py-3.5 font-medium text-[#252824]">
-                        {r.name}
-                      </td>
-                      <td className="px-5 py-3.5">{r.currentQuantity}</td>
-                      <td className="px-5 py-3.5 text-[#277254]">+{r.entries}</td>
-                      <td className="px-5 py-3.5 text-[#73766e]">-{r.exits}</td>
-                      <td className="px-5 py-3.5 text-[#b91c1c]">-{r.losses}</td>
-                      <td className="px-5 py-3.5 font-semibold">
-                        {r.netMovement}
+                </thead>
+                <tbody className="divide-y divide-[#e7e8e2]">
+                  {stockRows.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-5 py-8 text-center text-[#73766e]">
+                        Sem dados de estoque.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    stockRows.map((r) => (
+                      <tr key={r.productId} className="hover:bg-[#f7f8f4]/60">
+                        <td className="px-5 py-3.5 font-medium text-[#252824]">
+                          {r.name}
+                        </td>
+                        <td className="px-5 py-3.5">{r.currentQuantity}</td>
+                        <td className="px-5 py-3.5 text-[#277254]">+{r.entries}</td>
+                        <td className="px-5 py-3.5 text-[#73766e]">-{r.exits}</td>
+                        <td className="px-5 py-3.5 text-[#b91c1c]">-{r.losses}</td>
+                        <td className="px-5 py-3.5 font-semibold">
+                          {r.netMovement}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5 lg:col-span-4">
+            <h2 className="text-[15px] font-semibold text-[#252824]">
+              Resumo da operação
+            </h2>
+            <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.8px] text-[#73766e]">
+              MOVIMENTAÇÕES DE ESTOQUE
+            </p>
+            <div className="mt-3 space-y-2.5 rounded-[10px] bg-[#f7f8f4] p-4 text-[13px]">
+              <div className="flex items-center justify-between">
+                <span className="text-[#73766e]">Entradas / saídas</span>
+                <span className="font-semibold text-[#252824]">
+                  +{stockTotals.entries} / -{stockTotals.exits} un.
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[#73766e]">Saldo do período</span>
+                <span className="font-semibold text-[#277254]">
+                  {stockTotals.net >= 0 ? `+${stockTotals.net}` : stockTotals.net} un.
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -18,13 +18,11 @@ export function ProdutosPage() {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
-  // Form novo produto
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
   const [price, setPrice] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Modais
   const [editing, setEditing] = useState<Product | null>(null);
   const [editName, setEditName] = useState('');
   const [editCategory, setEditCategory] = useState('');
@@ -195,11 +193,14 @@ export function ProdutosPage() {
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-[24px] font-bold tracking-tight text-[#252824]">
-              Produtos
+            <p className="text-[11px] font-semibold uppercase tracking-[1px] text-[#d64b19]">
+              CATÁLOGO
+            </p>
+            <h1 className="mt-1 text-[26px] font-bold tracking-tight text-[#252824]">
+              Cadastro de produtos
             </h1>
             <p className="mt-1 text-[13px] text-[#73766e]">
-              Gerencie o catálogo, categorias, preços e disponibilidade no estoque.
+              Organize seu cardápio e mantenha tudo pronto para vender.
             </p>
           </div>
           <button
@@ -212,35 +213,57 @@ export function ProdutosPage() {
           </button>
         </div>
 
+        {/* Resumo do catálogo — valor + legenda lado a lado */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
             <p className="text-[12px] font-medium text-[#73766e]">
               Produtos cadastrados
             </p>
-            <p className="mt-2 text-[28px] font-bold text-[#252824]">
-              {summary.total}
-            </p>
+            <div className="mt-2 flex items-baseline gap-2.5">
+              <span className="text-[28px] font-bold text-[#252824]">
+                {summary.total}
+              </span>
+              <span className="text-[11px] text-[#73766e]">
+                Seu cardápio completo
+              </span>
+            </div>
           </div>
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
             <p className="text-[12px] font-medium text-[#73766e]">Categorias</p>
-            <p className="mt-2 text-[28px] font-bold text-[#252824]">
-              {summary.categories}
-            </p>
+            <div className="mt-2 flex items-baseline gap-2.5">
+              <span className="text-[28px] font-bold text-[#252824]">
+                {summary.categories}
+              </span>
+              <span className="text-[11px] text-[#73766e]">
+                Sabores bem organizados
+              </span>
+            </div>
           </div>
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
             <p className="text-[12px] font-medium text-[#73766e]">Estoque baixo</p>
-            <p className="mt-2 text-[28px] font-bold text-[#b45309]">
-              {summary.lowStock}
-            </p>
+            <div className="mt-2 flex items-baseline gap-2.5">
+              <span className="text-[28px] font-bold text-[#d64b19]">
+                {summary.lowStock}
+              </span>
+              <span className="text-[11px] text-[#73766e]">
+                Precisam de reposição
+              </span>
+            </div>
           </div>
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
             <p className="text-[12px] font-medium text-[#73766e]">Esgotados</p>
-            <p className="mt-2 text-[28px] font-bold text-[#b91c1c]">
-              {summary.outOfStock}
-            </p>
+            <div className="mt-2 flex items-baseline gap-2.5">
+              <span className="text-[28px] font-bold text-[#b91c1c]">
+                {summary.outOfStock}
+              </span>
+              <span className="text-[11px] text-[#73766e]">
+                Indisponível para pedidos
+              </span>
+            </div>
           </div>
         </div>
 
+        {/* Formulário Novo produto */}
         {canManage && (
           <form
             onSubmit={handleCreate}
@@ -251,35 +274,38 @@ export function ProdutosPage() {
               <h2 className="text-[15px] font-semibold text-[#252824]">
                 Novo produto
               </h2>
+              <span className="text-[11px] text-[#73766e]">
+                * Campos obrigatórios
+              </span>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div>
-                <label className="mb-1 block text-[12px] font-medium text-[#73766e]">
-                  Nome do produto
+                <label className="mb-1 block text-[12px] font-medium text-[#252824]">
+                  Nome do produto *
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="ex.: X-Bacon Artesanal"
-                  className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-[#f7f8f4] px-3 text-[13px] outline-none focus:border-[#d64b19] focus:bg-white"
+                  placeholder="Ex.: Burger da casa"
+                  className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[12px] font-medium text-[#73766e]">
-                  Categoria
+                <label className="mb-1 block text-[12px] font-medium text-[#252824]">
+                  Categoria *
                 </label>
                 <input
                   type="text"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  placeholder="ex.: Hambúrgueres"
-                  className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-[#f7f8f4] px-3 text-[13px] outline-none focus:border-[#d64b19] focus:bg-white"
+                  placeholder="Ex.: Hambúrgueres"
+                  className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[12px] font-medium text-[#73766e]">
-                  Preço (R$)
+                <label className="mb-1 block text-[12px] font-medium text-[#252824]">
+                  Preço de venda (R$) *
                 </label>
                 <input
                   type="number"
@@ -287,42 +313,48 @@ export function ProdutosPage() {
                   step="0.01"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  placeholder="29.90"
-                  className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-[#f7f8f4] px-3 text-[13px] outline-none focus:border-[#d64b19] focus:bg-white"
+                  placeholder="28.90"
+                  className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
                 />
               </div>
             </div>
-            <div className="mt-4 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setName('');
-                  setCategory('');
-                  setPrice('');
-                }}
-                className="rounded-[8px] border border-[#e7e8e2] px-4 py-2 text-[13px] font-medium text-[#73766e] hover:bg-[#f7f8f4]"
-              >
-                Limpar
-              </button>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="inline-flex items-center gap-2 rounded-[8px] bg-[#d64b19] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#be4014] disabled:opacity-60"
-              >
-                <Plus className="size-4" />
-                <span>{submitting ? 'Salvando...' : 'Cadastrar produto'}</span>
-              </button>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+              <span className="text-[11px] text-[#73766e]">
+                O ID e o saldo inicial (0 un.) são gerados automaticamente ao cadastrar.
+              </span>
+              <div className="flex gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setName('');
+                    setCategory('');
+                    setPrice('');
+                  }}
+                  className="rounded-[8px] border border-[#e7e8e2] px-4 py-2 text-[13px] font-medium text-[#252824] hover:bg-[#f7f8f4]"
+                >
+                  Limpar
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="inline-flex items-center gap-2 rounded-[8px] bg-[#d64b19] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#be4014] disabled:opacity-60"
+                >
+                  <Plus className="size-4" />
+                  <span>{submitting ? 'Salvando...' : 'Cadastrar produto'}</span>
+                </button>
+              </div>
             </div>
           </form>
         )}
 
+        {/* Tabela */}
         <div className="rounded-[12px] border border-[#e7e8e2] bg-white">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e7e8e2] p-5">
             <div className="flex items-center gap-2">
               <h2 className="text-[15px] font-semibold text-[#252824]">
-                Lista de produtos
+                Produtos cadastrados
               </h2>
-              <span className="rounded-full bg-[#f7f8f4] px-2.5 py-0.5 text-[12px] font-medium text-[#73766e]">
+              <span className="rounded-[6px] bg-[#f7f8f4] px-2 py-0.5 text-[11px] font-semibold text-[#73766e]">
                 {products.length}
               </span>
             </div>
@@ -333,14 +365,14 @@ export function ProdutosPage() {
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Buscar produto..."
-                  className="h-[38px] rounded-[8px] border border-[#e7e8e2] bg-[#f7f8f4] pl-9 pr-3 text-[13px] outline-none focus:border-[#d64b19] focus:bg-white"
+                  placeholder="Buscar nome ou categoria..."
+                  className="h-[38px] rounded-[8px] border border-[#e7e8e2] bg-white pl-9 pr-3 text-[13px] outline-none focus:border-[#d64b19]"
                 />
               </div>
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="h-[38px] rounded-[8px] border border-[#e7e8e2] bg-[#f7f8f4] px-3 text-[13px] outline-none focus:border-[#d64b19]"
+                className="h-[38px] rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
               >
                 <option value="">Todas as categorias</option>
                 {categories.map((cat) => (
@@ -354,25 +386,26 @@ export function ProdutosPage() {
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-[13px]">
-              <thead className="border-b border-[#e7e8e2] bg-[#f7f8f4] text-[11px] font-semibold uppercase tracking-wider text-[#73766e]">
+              <thead className="border-b border-[#e7e8e2] bg-[#f7f8f4] text-[11px] font-semibold text-[#73766e]">
                 <tr>
+                  <th className="px-5 py-3">ID</th>
                   <th className="px-5 py-3">Produto</th>
                   <th className="px-5 py-3">Categoria</th>
                   <th className="px-5 py-3">Preço</th>
-                  <th className="px-5 py-3">Estoque</th>
+                  <th className="px-5 py-3">Em estoque</th>
                   {canManage && <th className="px-5 py-3 text-right">Ações</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e7e8e2]">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="px-5 py-8 text-center text-[#73766e]">
+                    <td colSpan={6} className="px-5 py-8 text-center text-[#73766e]">
                       Carregando produtos...
                     </td>
                   </tr>
                 ) : products.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-5 py-8 text-center text-[#73766e]">
+                    <td colSpan={6} className="px-5 py-8 text-center text-[#73766e]">
                       Nenhum produto encontrado.
                     </td>
                   </tr>
@@ -381,43 +414,51 @@ export function ProdutosPage() {
                     const stock = stockMap[p.id];
                     const qty = stock?.totalQuantity ?? 0;
                     const min = stock?.minimumQuantity ?? 0;
-                    const badge =
+                    const statusBadge =
                       qty === 0
-                        ? 'bg-[#fee2e2] text-[#b91c1c]'
+                        ? { label: 'Esgotado', cls: 'bg-[#fee2e2] text-[#b91c1c]' }
                         : qty < min
-                          ? 'bg-[#fef3c7] text-[#b45309]'
-                          : 'bg-[#edf6ef] text-[#277254]';
+                          ? { label: 'Estoque baixo', cls: 'bg-[#fff0e7] text-[#d64b19]' }
+                          : { label: 'Disponível', cls: 'bg-[#edf6ef] text-[#277254]' };
                     return (
                       <tr key={p.id} className="hover:bg-[#f7f8f4]/60">
-                        <td className="px-5 py-3.5 font-medium text-[#252824]">
+                        <td className="px-5 py-3.5 font-mono text-[12px] text-[#73766e]">
+                          #{p.id.slice(0, 6)}
+                        </td>
+                        <td className="px-5 py-3.5 font-semibold text-[#252824]">
                           {p.name}
                         </td>
                         <td className="px-5 py-3.5 text-[#73766e]">{p.category}</td>
-                        <td className="px-5 py-3.5 font-medium text-[#252824]">
+                        <td className="px-5 py-3.5 font-semibold text-[#252824]">
                           {formatCurrency(p.price)}
                         </td>
                         <td className="px-5 py-3.5">
-                          <span
-                            className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${badge}`}
-                          >
-                            {qty} un.
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-[#252824]">
+                              {qty} un.
+                            </span>
+                            <span
+                              className={`inline-flex rounded-[6px] px-2 py-0.5 text-[11px] font-medium ${statusBadge.cls}`}
+                            >
+                              {statusBadge.label}
+                            </span>
+                          </div>
                         </td>
                         {canManage && (
                           <td className="px-5 py-3.5 text-right">
-                            <div className="inline-flex items-center gap-1">
+                            <div className="inline-flex items-center gap-3">
                               <button
                                 type="button"
                                 onClick={() => openEdit(p)}
-                                className="rounded-lg p-1.5 text-[#73766e] hover:bg-[#f7f8f4] hover:text-[#252824]"
-                                title="Editar"
+                                className="inline-flex items-center gap-1 text-[12px] font-medium text-[#252824] hover:text-[#d64b19]"
                               >
-                                <Pencil className="size-4" />
+                                <Pencil className="size-3.5" />
+                                <span>Editar</span>
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setDeleting(p)}
-                                className="rounded-lg p-1.5 text-[#73766e] hover:bg-[#fef2f2] hover:text-[#b91c1c]"
+                                className="text-[#b91c1c] hover:opacity-75"
                                 title="Desativar"
                               >
                                 <Trash2 className="size-4" />

@@ -172,11 +172,14 @@ export function EstoquePage() {
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-[24px] font-bold tracking-tight text-[#252824]">
-              Estoque
+            <p className="text-[11px] font-semibold uppercase tracking-[1px] text-[#d64b19]">
+              OPERAÇÃO
+            </p>
+            <h1 className="mt-1 text-[26px] font-bold tracking-tight text-[#252824]">
+              Controle de estoque
             </h1>
             <p className="mt-1 text-[13px] text-[#73766e]">
-              Controle de saldo, mínimo de segurança e movimentações idempotentes.
+              Cada entrada e saída no lugar certo. Sem surpresas no balcão.
             </p>
           </div>
           <button
@@ -189,13 +192,17 @@ export function EstoquePage() {
           </button>
         </div>
 
+        {/* Resumo */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
             <p className="text-[12px] font-medium text-[#73766e]">
-              Unidades disponíveis
+              Itens disponíveis
             </p>
             <p className="mt-2 text-[28px] font-bold text-[#252824]">
-              {summary.totalUnits}
+              {summary.totalUnits} un.
+            </p>
+            <p className="mt-1 text-[11px] text-[#73766e]">
+              Distribuídos em {items.length} produto(s)
             </p>
           </div>
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
@@ -203,209 +210,231 @@ export function EstoquePage() {
               Entradas acumuladas
             </p>
             <p className="mt-2 text-[28px] font-bold text-[#277254]">
-              {summary.entries}
+              +{summary.entries} un.
+            </p>
+            <p className="mt-1 text-[11px] text-[#73766e]">
+              Reposições registradas
             </p>
           </div>
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
             <p className="text-[12px] font-medium text-[#73766e]">
               Saídas acumuladas
             </p>
-            <p className="mt-2 text-[28px] font-bold text-[#252824]">
-              {summary.exits}
+            <p className="mt-2 text-[28px] font-bold text-[#d64b19]">
+              -{summary.exits} un.
+            </p>
+            <p className="mt-1 text-[11px] text-[#73766e]">
+              Vendas e ajustes
             </p>
           </div>
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5">
             <p className="text-[12px] font-medium text-[#73766e]">
               Precisam de atenção
             </p>
-            <p className="mt-2 text-[28px] font-bold text-[#d64b19]">
-              {summary.attention}
+            <p className="mt-2 text-[28px] font-bold text-[#b91c1c]">
+              {summary.attention} produto(s)
+            </p>
+            <p className="mt-1 text-[11px] text-[#73766e]">
+              Abaixo do mínimo configurado
             </p>
           </div>
         </div>
 
-        {canManage && (
-          <form
-            onSubmit={handleMove}
-            noValidate
-            className="rounded-[12px] border border-[#e7e8e2] bg-white p-5"
+        {/* Layout 2 colunas: Disponibilidade à esquerda + Registrar movimentação à direita */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          <div
+            className={`rounded-[12px] border border-[#e7e8e2] bg-white ${
+              canManage ? 'lg:col-span-7' : 'lg:col-span-12'
+            }`}
           >
-            <h2 className="mb-4 text-[15px] font-semibold text-[#252824]">
-              Registrar movimentação
-            </h2>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-              <div>
-                <label className="mb-1 block text-[12px] font-medium text-[#73766e]">
-                  Produto
-                </label>
-                <select
-                  value={productId}
-                  onChange={(e) => setProductId(e.target.value)}
-                  className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-[#f7f8f4] px-3 text-[13px] outline-none focus:border-[#d64b19]"
-                >
-                  {items.map((i) => (
-                    <option key={i.productId} value={i.productId}>
-                      {i.product.name} (saldo: {i.totalQuantity})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="mb-1 block text-[12px] font-medium text-[#73766e]">
-                  Tipo
-                </label>
-                <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value as StockMovementType)}
-                  className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-[#f7f8f4] px-3 text-[13px] outline-none focus:border-[#d64b19]"
-                >
-                  {(Object.keys(MOVEMENT_TYPE_LABELS) as StockMovementType[]).map(
-                    (t) => (
-                      <option key={t} value={t}>
-                        {MOVEMENT_TYPE_LABELS[t]}
-                      </option>
-                    ),
-                  )}
-                </select>
-              </div>
-              <div>
-                <label className="mb-1 block text-[12px] font-medium text-[#73766e]">
-                  Quantidade {type === 'ADJUSTMENT' ? '(+ ou -)' : ''}
-                </label>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e7e8e2] p-5">
+              <h2 className="text-[15px] font-semibold text-[#252824]">
+                Disponibilidade por produto
+              </h2>
+              <label className="flex cursor-pointer items-center gap-2 text-[12px] text-[#252824]">
                 <input
-                  type="number"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-[#f7f8f4] px-3 text-[13px] outline-none focus:border-[#d64b19]"
+                  type="checkbox"
+                  checked={lowOnly}
+                  onChange={(e) => setLowOnly(e.target.checked)}
+                  className="size-4 accent-[#d64b19]"
                 />
-              </div>
-              <div>
-                <label className="mb-1 block text-[12px] font-medium text-[#73766e]">
-                  Motivo
-                </label>
-                <input
-                  type="text"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  placeholder="ex.: Reposição de fornecedor"
-                  className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-[#f7f8f4] px-3 text-[13px] outline-none focus:border-[#d64b19]"
-                />
-              </div>
+                <span>Apenas estoque baixo</span>
+              </label>
             </div>
-            <div className="mt-4 flex justify-end">
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-[13px]">
+                <thead className="border-b border-[#e7e8e2] bg-[#f7f8f4] text-[11px] font-semibold text-[#73766e]">
+                  <tr>
+                    <th className="px-5 py-3">Produto</th>
+                    <th className="px-5 py-3">Saldo</th>
+                    <th className="px-5 py-3">Mínimo</th>
+                    <th className="px-5 py-3">Situação</th>
+                    {canManage && <th className="px-5 py-3 text-right">Ações</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#e7e8e2]">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={5} className="px-5 py-8 text-center text-[#73766e]">
+                        Carregando estoque...
+                      </td>
+                    </tr>
+                  ) : items.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-5 py-8 text-center text-[#73766e]">
+                        Nenhum registro encontrado.
+                      </td>
+                    </tr>
+                  ) : (
+                    items.map((item) => {
+                      const badge =
+                        item.totalQuantity === 0
+                          ? { label: 'Esgotado', cls: 'bg-[#fee2e2] text-[#b91c1c]' }
+                          : item.totalQuantity < item.minimumQuantity
+                            ? { label: 'Estoque baixo', cls: 'bg-[#fff0e7] text-[#d64b19]' }
+                            : { label: 'Disponível', cls: 'bg-[#edf6ef] text-[#277254]' };
+                      return (
+                        <tr key={item.id} className="hover:bg-[#f7f8f4]/60">
+                          <td className="px-5 py-3.5 font-semibold text-[#252824]">
+                            {item.product.name}
+                          </td>
+                          <td className="px-5 py-3.5 font-semibold text-[#252824]">
+                            {item.totalQuantity} un.
+                          </td>
+                          <td className="px-5 py-3.5 text-[#73766e]">
+                            {item.minimumQuantity} un.
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <span
+                              className={`inline-flex rounded-[6px] px-2 py-0.5 text-[11px] font-medium ${badge.cls}`}
+                            >
+                              {badge.label}
+                            </span>
+                          </td>
+                          {canManage && (
+                            <td className="px-5 py-3.5 text-right">
+                              <div className="inline-flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => openHistory(item)}
+                                  className="rounded-lg p-1.5 text-[#73766e] hover:bg-[#f7f8f4] hover:text-[#252824]"
+                                  title="Histórico de movimentações"
+                                >
+                                  <History className="size-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setMinItem(item);
+                                    setMinQty(String(item.minimumQuantity));
+                                  }}
+                                  className="rounded-lg p-1.5 text-[#73766e] hover:bg-[#f7f8f4] hover:text-[#252824]"
+                                  title="Definir mínimo"
+                                >
+                                  <Settings2 className="size-4" />
+                                </button>
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {canManage && (
+            <form
+              onSubmit={handleMove}
+              noValidate
+              className="flex flex-col justify-between rounded-[12px] border border-[#e7e8e2] bg-white p-5 lg:col-span-5"
+            >
+              <div className="space-y-4">
+                <h2 className="text-[15px] font-semibold text-[#252824]">
+                  Registrar movimentação
+                </h2>
+
+                <div>
+                  <label className="mb-1 block text-[12px] font-medium text-[#252824]">
+                    Produto *
+                  </label>
+                  <select
+                    value={productId}
+                    onChange={(e) => setProductId(e.target.value)}
+                    className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
+                  >
+                    {items.map((i) => (
+                      <option key={i.productId} value={i.productId}>
+                        {i.product.name} ({i.totalQuantity} un.)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1 block text-[12px] font-medium text-[#252824]">
+                      Tipo *
+                    </label>
+                    <select
+                      value={type}
+                      onChange={(e) => setType(e.target.value as StockMovementType)}
+                      className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
+                    >
+                      {(Object.keys(MOVEMENT_TYPE_LABELS) as StockMovementType[]).map(
+                        (t) => (
+                          <option key={t} value={t}>
+                            {MOVEMENT_TYPE_LABELS[t]}
+                          </option>
+                        ),
+                      )}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-[12px] font-medium text-[#252824]">
+                      Quantidade *
+                    </label>
+                    <input
+                      type="number"
+                      value={quantity}
+                      onChange={(e) => setQuantity(e.target.value)}
+                      className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-[12px] font-medium text-[#252824]">
+                    Motivo *
+                  </label>
+                  <input
+                    type="text"
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    placeholder="Ex.: Reposição NF 00281"
+                    className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
+                  />
+                </div>
+
+                <p className="text-[11px] text-[#73766e]">
+                  Entradas somam e saídas reduzem o saldo do produto selecionado.
+                </p>
+              </div>
+
               <button
                 type="submit"
                 disabled={submitting}
-                className="inline-flex items-center gap-2 rounded-[8px] bg-[#d64b19] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#be4014] disabled:opacity-60"
+                className="mt-5 inline-flex h-[44px] w-full items-center justify-center gap-2 rounded-[8px] bg-[#d64b19] text-[13px] font-semibold text-white hover:bg-[#be4014] disabled:opacity-60"
               >
                 <Plus className="size-4" />
                 <span>{submitting ? 'Registrando...' : 'Registrar movimentação'}</span>
               </button>
-            </div>
-          </form>
-        )}
-
-        <div className="rounded-[12px] border border-[#e7e8e2] bg-white">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e7e8e2] p-5">
-            <h2 className="text-[15px] font-semibold text-[#252824]">
-              Disponibilidade por produto
-            </h2>
-            <label className="flex cursor-pointer items-center gap-2 text-[13px] text-[#252824]">
-              <input
-                type="checkbox"
-                checked={lowOnly}
-                onChange={(e) => setLowOnly(e.target.checked)}
-                className="size-4 accent-[#d64b19]"
-              />
-              <span>Apenas estoque abaixo do mínimo</span>
-            </label>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-[13px]">
-              <thead className="border-b border-[#e7e8e2] bg-[#f7f8f4] text-[11px] font-semibold uppercase tracking-wider text-[#73766e]">
-                <tr>
-                  <th className="px-5 py-3">Produto</th>
-                  <th className="px-5 py-3">Categoria</th>
-                  <th className="px-5 py-3">Saldo atual</th>
-                  <th className="px-5 py-3">Mínimo</th>
-                  <th className="px-5 py-3">Status</th>
-                  {canManage && <th className="px-5 py-3 text-right">Ações</th>}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#e7e8e2]">
-                {loading ? (
-                  <tr>
-                    <td colSpan={6} className="px-5 py-8 text-center text-[#73766e]">
-                      Carregando estoque...
-                    </td>
-                  </tr>
-                ) : items.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-5 py-8 text-center text-[#73766e]">
-                      Nenhum registro encontrado.
-                    </td>
-                  </tr>
-                ) : (
-                  items.map((item) => {
-                    const isLow = item.totalQuantity < item.minimumQuantity;
-                    return (
-                      <tr key={item.id} className="hover:bg-[#f7f8f4]/60">
-                        <td className="px-5 py-3.5 font-medium text-[#252824]">
-                          {item.product.name}
-                        </td>
-                        <td className="px-5 py-3.5 text-[#73766e]">
-                          {item.product.category}
-                        </td>
-                        <td className="px-5 py-3.5 font-semibold text-[#252824]">
-                          {item.totalQuantity}
-                        </td>
-                        <td className="px-5 py-3.5 text-[#73766e]">
-                          {item.minimumQuantity}
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <span
-                            className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                              isLow
-                                ? 'bg-[#fef3c7] text-[#b45309]'
-                                : 'bg-[#edf6ef] text-[#277254]'
-                            }`}
-                          >
-                            {isLow ? 'Estoque baixo' : 'Normal'}
-                          </span>
-                        </td>
-                        {canManage && (
-                          <td className="px-5 py-3.5 text-right">
-                            <div className="inline-flex items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => openHistory(item)}
-                                className="rounded-lg p-1.5 text-[#73766e] hover:bg-[#f7f8f4] hover:text-[#252824]"
-                                title="Histórico de movimentações"
-                              >
-                                <History className="size-4" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setMinItem(item);
-                                  setMinQty(String(item.minimumQuantity));
-                                }}
-                                className="rounded-lg p-1.5 text-[#73766e] hover:bg-[#f7f8f4] hover:text-[#252824]"
-                                title="Definir mínimo"
-                              >
-                                <Settings2 className="size-4" />
-                              </button>
-                            </div>
-                          </td>
-                        )}
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+            </form>
+          )}
         </div>
 
         <Modal
