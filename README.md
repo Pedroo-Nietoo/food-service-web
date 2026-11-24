@@ -16,4 +16,4 @@ pnpm install
 cp .env.example .env
 pnpm run dev
 ```
-> Certifique-se de que o backend (`food-service-api`) esteja rodando em `http://localhost:3000` (ou ajuste `VITE_API_PROXY` / `VITE_API_URL`).
+> Certifique-se de que o backend (`food-service-api`) esteja rodando em `http://localhost:3000` (ou ajuste `API_PROXY` / `API_URL`).

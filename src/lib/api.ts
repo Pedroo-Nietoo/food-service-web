@@ -1,6 +1,6 @@
 import { translateApiError } from './errors';
 
-const BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? '/api/v1';
+const BASE_URL = (import.meta.env.API_URL as string | undefined) ?? '/api/v1';
 
 const TOKEN_KEY = 'brasa_access_token';
 const USER_KEY = 'brasa_user';
