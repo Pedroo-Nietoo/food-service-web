@@ -60,7 +60,6 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   PIX: 'PIX',
   CREDIT_CARD: 'Cartão de Crédito',
   DEBIT_CARD: 'Cartão de Débito',
-  MEAL_VOUCHER: 'Vale Refeição',
 };
 
 export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
