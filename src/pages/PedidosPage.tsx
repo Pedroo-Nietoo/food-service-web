@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Modal } from '../components/Modal';
+import { Pagination } from '../components/Pagination';
 import { Toast, type ToastMessage } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
 import { ApiError, apiRequest } from '../lib/api';
@@ -68,6 +69,7 @@ export function PedidosPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | ''>('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
@@ -163,6 +165,11 @@ export function PedidosPage() {
       return idMatch || custName.includes(q);
     });
   }, [orders, searchQuery, customerMap]);
+
+  const paginatedOrders = useMemo(() => {
+    const start = (page - 1) * 20;
+    return filteredOrders.slice(start, start + 20);
+  }, [filteredOrders, page]);
 
   const draftTotal = useMemo(
     () =>
@@ -641,14 +648,20 @@ export function PedidosPage() {
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setPage(1);
+                    setSearchQuery(e.target.value);
+                  }}
                   placeholder="Buscar pedido ou cliente..."
                   className="h-[38px] rounded-[8px] border border-[#e7e8e2] bg-white pl-9 pr-3 text-[13px] outline-none focus:border-[#d64b19]"
                 />
               </div>
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as OrderStatus | '')}
+                onChange={(e) => {
+                  setPage(1);
+                  setStatusFilter(e.target.value as OrderStatus | '');
+                }}
                 className="h-[38px] rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
               >
                 {STATUS_OPTIONS.map((st) => (
@@ -687,7 +700,7 @@ export function PedidosPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredOrders.map((order) => {
+                  paginatedOrders.map((order) => {
                     const meta = ORDER_STATUS_META[order.status];
                     const custName = order.customerId
                       ? (customerMap[order.customerId]?.name ?? 'Cliente')
@@ -811,6 +824,13 @@ export function PedidosPage() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            page={page}
+            pageSize={20}
+            totalItems={filteredOrders.length}
+            itemLabel="pedidos"
+            onPageChange={setPage}
+          />
         </div>
 
         <Modal
