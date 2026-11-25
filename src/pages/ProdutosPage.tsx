@@ -2,6 +2,7 @@ import { Download, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Modal } from '../components/Modal';
 import { Pagination } from '../components/Pagination';
+import { SearchableSelect } from '../components/SearchableSelect';
 import { Toast, type ToastMessage } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
 import { ApiError, apiRequest, exportCsv } from '../lib/api';
@@ -431,21 +432,22 @@ export function ProdutosPage() {
                   className="h-[38px] rounded-[8px] border border-[#e7e8e2] bg-white pl-9 pr-3 text-[13px] outline-none focus:border-[#d64b19]"
                 />
               </div>
-              <select
+              <SearchableSelect
                 value={categoryFilter}
-                onChange={(e) => {
+                onChange={(val) => {
                   setPage(1);
-                  setCategoryFilter(e.target.value);
+                  setCategoryFilter(val);
                 }}
-                className="h-[38px] rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
-              >
-                <option value="">Todas as categorias</option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
+                compact
+                className="w-48"
+                emptyOptionLabel="Todas as categorias"
+                searchPlaceholder="Buscar categoria..."
+                emptyText="Nenhuma categoria encontrada."
+                options={categories.map((cat) => ({
+                  value: cat,
+                  label: cat,
+                }))}
+              />
             </div>
           </div>
 

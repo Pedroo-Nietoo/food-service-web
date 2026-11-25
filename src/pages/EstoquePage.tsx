@@ -2,6 +2,7 @@ import { Download, History, Plus, Settings2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Modal } from '../components/Modal';
 import { Pagination } from '../components/Pagination';
+import { SearchableSelect } from '../components/SearchableSelect';
 import { Toast, type ToastMessage } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
 import { ApiError, apiRequest, exportCsv } from '../lib/api';
@@ -378,17 +379,19 @@ export function EstoquePage() {
                   <label className="mb-1 block text-[12px] font-medium text-[#252824]">
                     Produto *
                   </label>
-                  <select
+                  <SearchableSelect
                     value={productId}
-                    onChange={(e) => setProductId(e.target.value)}
-                    className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
-                  >
-                    {items.map((i) => (
-                      <option key={i.productId} value={i.productId}>
-                        {i.product.name} ({i.totalQuantity} un.)
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setProductId}
+                    placeholder="Selecione um produto..."
+                    searchPlaceholder="Buscar produto ou categoria..."
+                    emptyText="Nenhum produto encontrado."
+                    options={items.map((i) => ({
+                      value: i.productId,
+                      label: `${i.product.name} (${i.totalQuantity} un.)`,
+                      sublabel: i.product.category,
+                      searchText: i.product.category,
+                    }))}
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">

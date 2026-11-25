@@ -13,6 +13,7 @@ import {
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Modal } from '../components/Modal';
 import { Pagination } from '../components/Pagination';
+import { SearchableSelect } from '../components/SearchableSelect';
 import { Toast, type ToastMessage } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
 import { ApiError, apiRequest } from '../lib/api';
@@ -506,35 +507,38 @@ export function PedidosPage() {
                   <label className="mb-1 block text-[12px] font-medium text-[#252824]">
                     Cliente (opcional)
                   </label>
-                  <select
+                  <SearchableSelect
                     value={customerId}
-                    onChange={(e) => setCustomerId(e.target.value)}
-                    className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
-                  >
-                    <option value="">Balcão / Não identificado</option>
-                    {customers.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setCustomerId}
+                    emptyOptionLabel="Balcão / Não identificado"
+                    searchPlaceholder="Buscar cliente por nome, CPF ou telefone..."
+                    emptyText="Nenhum cliente encontrado."
+                    options={customers.map((c) => ({
+                      value: c.id,
+                      label: c.name,
+                      sublabel: c.phone ?? c.cpf ?? undefined,
+                      searchText: `${c.cpf ?? ''} ${c.phone ?? ''}`,
+                    }))}
+                  />
                 </div>
 
                 <div>
                   <label className="mb-1 block text-[12px] font-medium text-[#252824]">
                     Produto *
                   </label>
-                  <select
+                  <SearchableSelect
                     value={selectedProductId}
-                    onChange={(e) => setSelectedProductId(e.target.value)}
-                    className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
-                  >
-                    {products.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name} · {formatCurrency(p.price)}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setSelectedProductId}
+                    placeholder="Selecione um produto..."
+                    searchPlaceholder="Buscar produto ou categoria..."
+                    emptyText="Nenhum produto encontrado."
+                    options={products.map((p) => ({
+                      value: p.id,
+                      label: `${p.name} · ${formatCurrency(p.price)}`,
+                      sublabel: p.category,
+                      searchText: p.category,
+                    }))}
+                  />
                 </div>
 
                 <div>
