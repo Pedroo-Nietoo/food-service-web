@@ -1,5 +1,6 @@
 import { Calendar, Download } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Pagination } from '../components/Pagination';
 import { Toast, type ToastMessage } from '../components/Toast';
 import { ApiError, apiRequest, exportCsv } from '../lib/api';
 import { formatCurrency, PAYMENT_METHOD_LABELS } from '../lib/format';
@@ -28,7 +29,11 @@ export function RelatoriosPage() {
 
   const [sales, setSales] = useState<SalesReport | null>(null);
   const [products, setProducts] = useState<ProductsReportRow[]>([]);
+  const [productsPage, setProductsPage] = useState(1);
+  const [productsTotal, setProductsTotal] = useState(0);
   const [stockRows, setStockRows] = useState<StockReportRow[]>([]);
+  const [stockPage, setStockPage] = useState(1);
+  const [stockTotal, setStockTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
@@ -46,20 +51,33 @@ export function RelatoriosPage() {
       const from = `${fromDate}T00:00:00Z`;
       const to = `${toDate}T00:00:00Z`;
       const params = new URLSearchParams({ from, to });
-      const paged = new URLSearchParams({ from, to, page: '1', limit: '20' });
+      const productsParams = new URLSearchParams({
+        from,
+        to,
+        page: String(productsPage),
+        limit: '20',
+      });
+      const stockParams = new URLSearchParams({
+        from,
+        to,
+        page: String(stockPage),
+        limit: '20',
+      });
 
       const [salesData, prodData, stockData] = await Promise.all([
         apiRequest<SalesReport>(`/reports/sales?${params.toString()}`),
         apiRequest<PaginatedResponse<ProductsReportRow>>(
-          `/reports/products?${paged.toString()}`,
+          `/reports/products?${productsParams.toString()}`,
         ),
         apiRequest<PaginatedResponse<StockReportRow> & { asOf: string }>(
-          `/reports/stock?${paged.toString()}`,
+          `/reports/stock?${stockParams.toString()}`,
         ),
       ]);
       setSales(salesData);
       setProducts(prodData.data);
+      setProductsTotal(prodData.meta.total);
       setStockRows(stockData.data);
+      setStockTotal(stockData.meta.total);
     } catch (err) {
       setToast({
         type: 'error',
@@ -68,7 +86,7 @@ export function RelatoriosPage() {
     } finally {
       setLoading(false);
     }
-  }, [fromDate, toDate]);
+  }, [fromDate, toDate, productsPage, stockPage]);
 
   useEffect(() => {
     void loadReports();
@@ -390,9 +408,14 @@ export function RelatoriosPage() {
                 </table>
               </div>
             )}
+            <Pagination
+              page={productsPage}
+              pageSize={20}
+              totalItems={productsTotal}
+              itemLabel="produtos"
+              onPageChange={setProductsPage}
+            />
           </div>
-
-        {/* Linha inferior: Tabela de estoque + Resumo da operação */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white lg:col-span-8">
             <div className="border-b border-[#e7e8e2] p-5">
@@ -438,6 +461,13 @@ export function RelatoriosPage() {
                 </tbody>
               </table>
             </div>
+            <Pagination
+              page={stockPage}
+              pageSize={20}
+              totalItems={stockTotal}
+              itemLabel="itens"
+              onPageChange={setStockPage}
+            />
           </div>
 
           <div className="rounded-[12px] border border-[#e7e8e2] bg-white p-5 lg:col-span-4">

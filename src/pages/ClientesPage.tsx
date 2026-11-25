@@ -1,6 +1,7 @@
 import { Download, Pencil, Plus, Search, ShieldCheck } from 'lucide-react';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Modal } from '../components/Modal';
+import { Pagination } from '../components/Pagination';
 import { Toast, type ToastMessage } from '../components/Toast';
 import { ApiError, apiRequest, exportCsv } from '../lib/api';
 import { formatCpf, formatDateTime, formatPhone } from '../lib/format';
@@ -10,7 +11,6 @@ export function ClientesPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<ToastMessage | null>(null);
@@ -30,7 +30,7 @@ export function ClientesPage() {
     try {
       const params = new URLSearchParams({
         page: String(page),
-        limit: '10',
+        limit: '20',
       });
       if (search.trim()) params.set('search', search.trim());
       const res = await apiRequest<PaginatedResponse<Customer>>(
@@ -38,7 +38,6 @@ export function ClientesPage() {
       );
       setCustomers(res.data);
       setTotal(res.meta.total);
-      setTotalPages(Math.max(1, res.meta.totalPages));
     } catch (err) {
       setToast({
         type: 'error',
@@ -374,29 +373,13 @@ export function ClientesPage() {
             </table>
           </div>
 
-          <div className="flex items-center justify-between border-t border-[#e7e8e2] px-5 py-3 text-[12px] text-[#73766e]">
-            <span>
-              Página {page} de {totalPages}
-            </span>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                disabled={page <= 1}
-                onClick={() => setPage((p) => p - 1)}
-                className="rounded-[8px] border border-[#e7e8e2] px-3 py-1.5 disabled:opacity-40"
-              >
-                Anterior
-              </button>
-              <button
-                type="button"
-                disabled={page >= totalPages}
-                onClick={() => setPage((p) => p + 1)}
-                className="rounded-[8px] border border-[#e7e8e2] px-3 py-1.5 disabled:opacity-40"
-              >
-                Próxima
-              </button>
-            </div>
-          </div>
+          <Pagination
+            page={page}
+            pageSize={20}
+            totalItems={total}
+            itemLabel="clientes"
+            onPageChange={setPage}
+          />
         </div>
 
         <Modal

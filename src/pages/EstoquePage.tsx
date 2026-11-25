@@ -1,6 +1,7 @@
 import { Download, History, Plus, Settings2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Modal } from '../components/Modal';
+import { Pagination } from '../components/Pagination';
 import { Toast, type ToastMessage } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
 import { ApiError, apiRequest, exportCsv } from '../lib/api';
@@ -13,6 +14,7 @@ export function EstoquePage() {
 
   const [items, setItems] = useState<StockItem[]>([]);
   const [lowOnly, setLowOnly] = useState(false);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
@@ -57,6 +59,11 @@ export function EstoquePage() {
     const attention = items.filter((i) => i.totalQuantity < i.minimumQuantity).length;
     return { totalUnits, entries, exits, attention };
   }, [items]);
+
+  const paginatedItems = useMemo(() => {
+    const start = (page - 1) * 20;
+    return items.slice(start, start + 20);
+  }, [items, page]);
 
   async function handleMove(e: FormEvent) {
     e.preventDefault();
@@ -255,7 +262,10 @@ export function EstoquePage() {
                 <input
                   type="checkbox"
                   checked={lowOnly}
-                  onChange={(e) => setLowOnly(e.target.checked)}
+                  onChange={(e) => {
+                    setPage(1);
+                    setLowOnly(e.target.checked);
+                  }}
                   className="size-4 accent-[#d64b19]"
                 />
                 <span>Apenas estoque baixo</span>
@@ -287,7 +297,7 @@ export function EstoquePage() {
                       </td>
                     </tr>
                   ) : (
-                    items.map((item) => {
+                    paginatedItems.map((item) => {
                       const badge =
                         item.totalQuantity === 0
                           ? { label: 'Esgotado', cls: 'bg-[#fee2e2] text-[#b91c1c]' }
@@ -344,6 +354,13 @@ export function EstoquePage() {
                 </tbody>
               </table>
             </div>
+            <Pagination
+              page={page}
+              pageSize={20}
+              totalItems={items.length}
+              itemLabel="produtos"
+              onPageChange={setPage}
+            />
           </div>
 
           {canManage && (

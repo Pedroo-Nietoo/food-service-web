@@ -1,6 +1,7 @@
 import { Download, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Modal } from '../components/Modal';
+import { Pagination } from '../components/Pagination';
 import { Toast, type ToastMessage } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
 import { ApiError, apiRequest, exportCsv } from '../lib/api';
@@ -16,6 +17,7 @@ export function ProdutosPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [page, setPage] = useState(1);
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
   const [name, setName] = useState('');
@@ -65,6 +67,11 @@ export function ProdutosPage() {
     () => Array.from(new Set(products.map((p) => p.category))).sort(),
     [products],
   );
+
+  const paginatedProducts = useMemo(() => {
+    const start = (page - 1) * 20;
+    return products.slice(start, start + 20);
+  }, [products, page]);
 
   const summary = useMemo(() => {
     let lowStock = 0;
@@ -416,14 +423,20 @@ export function ProdutosPage() {
                 <input
                   type="text"
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setPage(1);
+                    setSearch(e.target.value);
+                  }}
                   placeholder="Buscar nome ou categoria..."
                   className="h-[38px] rounded-[8px] border border-[#e7e8e2] bg-white pl-9 pr-3 text-[13px] outline-none focus:border-[#d64b19]"
                 />
               </div>
               <select
                 value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
+                onChange={(e) => {
+                  setPage(1);
+                  setCategoryFilter(e.target.value);
+                }}
                 className="h-[38px] rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
               >
                 <option value="">Todas as categorias</option>
@@ -462,7 +475,7 @@ export function ProdutosPage() {
                     </td>
                   </tr>
                 ) : (
-                  products.map((p) => {
+                  paginatedProducts.map((p) => {
                     const stock = stockMap[p.id];
                     const qty = stock?.totalQuantity ?? 0;
                     const min = stock?.minimumQuantity ?? 0;
@@ -525,6 +538,13 @@ export function ProdutosPage() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            page={page}
+            pageSize={20}
+            totalItems={products.length}
+            itemLabel="produtos"
+            onPageChange={setPage}
+          />
         </div>
 
         <Modal
