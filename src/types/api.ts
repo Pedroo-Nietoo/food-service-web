@@ -92,8 +92,7 @@ export type PaymentMethod =
   | 'CASH'
   | 'PIX'
   | 'CREDIT_CARD'
-  | 'DEBIT_CARD'
-  | 'MEAL_VOUCHER';
+  | 'DEBIT_CARD';
 
 export type PaymentStatus =
   | 'REFUND_PENDING'

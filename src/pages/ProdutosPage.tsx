@@ -21,6 +21,8 @@ export function ProdutosPage() {
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
   const [price, setPrice] = useState('');
+  const [initialStock, setInitialStock] = useState('0');
+  const [minimumStock, setMinimumStock] = useState('0');
   const [submitting, setSubmitting] = useState(false);
 
   const [editing, setEditing] = useState<Product | null>(null);
@@ -93,6 +95,22 @@ export function ProdutosPage() {
       setToast({ type: 'error', text: 'O preço do produto deve ser maior que zero.' });
       return;
     }
+    const parsedInitialStock = Number(initialStock === '' ? '0' : initialStock);
+    if (!Number.isInteger(parsedInitialStock) || parsedInitialStock < 0) {
+      setToast({
+        type: 'error',
+        text: 'O estoque inicial deve ser um número inteiro maior ou igual a zero.',
+      });
+      return;
+    }
+    const parsedMinimumStock = Number(minimumStock === '' ? '0' : minimumStock);
+    if (!Number.isInteger(parsedMinimumStock) || parsedMinimumStock < 0) {
+      setToast({
+        type: 'error',
+        text: 'O estoque mínimo deve ser um número inteiro maior ou igual a zero.',
+      });
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -102,11 +120,15 @@ export function ProdutosPage() {
           name: name.trim(),
           category: category.trim(),
           price: parsedPrice,
+          initialStock: parsedInitialStock,
+          minimumStock: parsedMinimumStock,
         }),
       });
       setName('');
       setCategory('');
       setPrice('');
+      setInitialStock('0');
+      setMinimumStock('0');
       setToast({ type: 'success', text: 'Produto cadastrado com sucesso.' });
       await loadData();
     } catch (err) {
@@ -278,7 +300,7 @@ export function ProdutosPage() {
                 * Campos obrigatórios
               </span>
             </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
               <div>
                 <label className="mb-1 block text-[12px] font-medium text-[#252824]">
                   Nome do produto *
@@ -317,10 +339,38 @@ export function ProdutosPage() {
                   className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
                 />
               </div>
+              <div>
+                <label className="mb-1 block text-[12px] font-medium text-[#252824]">
+                  Estoque inicial
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={initialStock}
+                  onChange={(e) => setInitialStock(e.target.value)}
+                  placeholder="0"
+                  className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[12px] font-medium text-[#252824]">
+                  Estoque mínimo
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={minimumStock}
+                  onChange={(e) => setMinimumStock(e.target.value)}
+                  placeholder="0"
+                  className="h-[42px] w-full rounded-[8px] border border-[#e7e8e2] bg-white px-3 text-[13px] outline-none focus:border-[#d64b19]"
+                />
+              </div>
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <span className="text-[11px] text-[#73766e]">
-                O ID e o saldo inicial (0 un.) são gerados automaticamente ao cadastrar.
+                O ID do produto é gerado automaticamente ao cadastrar.
               </span>
               <div className="flex gap-2.5">
                 <button
@@ -329,6 +379,8 @@ export function ProdutosPage() {
                     setName('');
                     setCategory('');
                     setPrice('');
+                    setInitialStock('0');
+                    setMinimumStock('0');
                   }}
                   className="rounded-[8px] border border-[#e7e8e2] px-4 py-2 text-[13px] font-medium text-[#252824] hover:bg-[#f7f8f4]"
                 >

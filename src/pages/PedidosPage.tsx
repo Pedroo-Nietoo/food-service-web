@@ -122,6 +122,24 @@ export function PedidosPage() {
     void loadData();
   }, [loadData]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paymentStatus = params.get('payment');
+    if (paymentStatus === 'success') {
+      setToast({
+        type: 'success',
+        text: 'Pagamento concluído na Stripe! O status será atualizado em instantes.',
+      });
+      window.history.replaceState({}, '', '/pedidos');
+    } else if (paymentStatus === 'cancelled') {
+      setToast({
+        type: 'error',
+        text: 'Pagamento na Stripe cancelado. Você pode tentar novamente quando quiser.',
+      });
+      window.history.replaceState({}, '', '/pedidos');
+    }
+  }, []);
+
   const productMap = useMemo(() => {
     const map: Record<string, Product> = {};
     for (const p of products) map[p.id] = p;
@@ -339,7 +357,10 @@ export function PedidosPage() {
 
     setPaying(true);
     try {
-      await apiRequest(`/orders/${payOrder.id}/payments`, {
+      const result = await apiRequest<{
+        payment: { id: string; status: string };
+        checkoutUrl?: string | null;
+      }>(`/orders/${payOrder.id}/payments`, {
         method: 'POST',
         body: JSON.stringify({
           method: payMethod,
@@ -347,9 +368,19 @@ export function PedidosPage() {
           ...(payMethod === 'CASH'
             ? { receivedAmount: Number(payReceived).toFixed(2) }
             : {}),
+          ...((payMethod === 'CREDIT_CARD' || payMethod === 'DEBIT_CARD')
+            ? {
+                successUrl: `${window.location.origin}/pedidos?payment=success`,
+                cancelUrl: `${window.location.origin}/pedidos?payment=cancelled`,
+              }
+            : {}),
           idempotencyKey: crypto.randomUUID(),
         }),
       });
+      if (result.checkoutUrl) {
+        window.location.href = result.checkoutUrl;
+        return;
+      }
       setPayOrder(null);
       setToast({ type: 'success', text: 'Pagamento registrado com sucesso.' });
       await loadData();
